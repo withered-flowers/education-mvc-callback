@@ -17,6 +17,17 @@ class IdentityController {
       }
     });
   }
+
+  static findCallback(inputId) {
+    Identity.findSpecificWithCallback(inputId, (err, data) => {
+      if(err) {
+        IdentityView.errorMessage(err);
+      }
+      else {
+        IdentityView.successMessage(data);
+      }
+    });
+  }
 }
 
 module.exports = IdentityController;

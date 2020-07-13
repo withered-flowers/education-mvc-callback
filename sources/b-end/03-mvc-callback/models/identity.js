@@ -61,6 +61,29 @@ class Identity {
       }
     });
   }
+
+  static findSpecificWithCallback(inputId, callback) {
+    fs.readFile('./dummy.json', 'utf8', (err, data) => {
+      if(err) {
+        callback(err, null);
+      }
+      else {
+        let selectedData = [];
+
+        data = JSON.parse(data);
+
+        for(let i = 0; i < data.length; i++) {
+          if(data[i].id === Number(inputId)) {
+            selectedData.push(
+              new Identity(data[i].id, data[i].nama, data[i].email)
+            );
+          }
+        }
+
+        callback(null, selectedData);
+      }
+    });
+  }
 }
 
 module.exports = Identity;

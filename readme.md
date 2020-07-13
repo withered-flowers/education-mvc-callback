@@ -397,5 +397,109 @@ lainnya?
 
 Misalnya ketika kita ingin memilih orang berdasarkan id yang dicari?
 
+Pertama-tama kita akan memodifikasi model` dengan menambahkan method untuk 
+mencari data secara spesifik.
+
+Misalnya nama method-nya pada `models/identity.js` adalah 
+`findSpecificWithCallback`
+
+```javascript
+// File: models/identity.js
+...
+
+  // Karena kita butuh untuk menerima suatu parameter tambahan untuk
+  // melakukan pencarian, dan kita tau bahwa hasil kembaliannya akan
+  // dikembalikan via callback, maka total parameter yang dibutuhkan
+  // adalah ...... dua !
+  // misalnya kita namanya inputId dan callback
+  static findSpecificWithCallback(inputId, callback) {
+    fs.readFile('./dummy.json', 'utf8', (err, data) => {
+      if(err) {
+        // Sama dengan readDataWithCallback
+        // callback yang dibuat juga akan mengembalikan 2 buah parameter yah !
+        callback(err, null);
+      }
+      else {
+        // ini adalah variabel untuk data yang terpilih yah
+        // Sengaja dalam bentuk array supaya rapih ketika 
+        // menggunakan console.table pada output view
+        let selectedData = [];
+
+        data = JSON.parse(data);
+
+        for(let i = 0; i < data.length; i++) {
+          // Kalau pakai === harus dikonversi ke angka yah
+          if(data[i].id === Number(inputId)) {
+            selectedData.push(
+              new Identity(data[i].id, data[i].nama, data[i].email)
+            );
+          }
+        }
+
+        // Kalau sudah ketemu, yah kita kembalikan datanya !
+        callback(null, selectedData);
+      }
+    });
+  }
+```
+
+Kedua, kita akan memodifikasi controller dengan menambahkan sebuah method 
+yang akan menggunakan `findSpecificWithCallback` dari models.
+
+Misalnya nama method-nya pada `controllers/identitycontroller.js` adalah
+`findCallback`
+
+```javascript
+// File: controllers/identitycontroller.js
+
+...
+  // Kita butuh input dari index.js kan untuk menerima si id?
+  // sehingga pada findCallback ini akan membutuhkan sebuah parameter !
+  // misalnya nama parameter nya adalah inputId
+  static findCallback(inputId) {
+    // Kita tau bahwa findSpecificWithCallback menerima dua buah parameter
+    // yaitu inputId dan callback yang merupakan function yang menerima
+    // 2 buah parameter: err dan data
+    Identity.findSpecificWithCallback(inputId, (err, data) => {
+      // Apabila error, kita tampilkan error via View
+      if(err) {
+        IdentityView.errorMessage(err);
+      }
+      else {
+        IdentityView.successMessage(data);
+      }
+    });
+  }
+```
+
+Langkah ketiga adalah kita memodifikasi `index.js` untuk dapat menggunakan
+method baru pada controller ini,
+
+sehingga ketika kita memanggil  
+`node index.js find 10` kita akan mendapatkan output untuk id 10
+
+
+```javascript
+const IdentityController = require('./controllers/identitycontroller.js');
+
+const argv = process.argv;
+
+if(argv[2] === 'list') {
+  IdentityController.listCallback();
+}
+else if(argv[2] === 'find') {
+  // Ingat bahwa input id ada pada index ke selanjutnya dari argv
+  IdentityController.findCallback(argv[3]);
+}
+```
+
+Dan selanjutnya kita akan menjalankan kode yang ada, lihatlah hasilnya !
+
+Sampai di sini artinya kita sudah berhasil untuk menggunakan MVC Callback untuk
+dua buah method yang melakukan listing dan pencarian berdasarkan sebuah 
+parameter yah !
+
+`Keep learning !`
+
 ## References
 * [NodeJS Error Convention](https://nodejs.org/en/knowledge/errors/what-are-the-error-conventions/#:~:text=In%20Node.,the%20first%20parameter%20is%20null)
